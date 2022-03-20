@@ -1,2 +1,1 @@
-pytube
-PySimpleGUI
+pytube~=12.0.0
