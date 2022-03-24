@@ -2,10 +2,10 @@ import streamlit as st
 import requests
 from pytube import YouTube, StreamQuery
 
-# https://www.youtube.com/watch?v=Ch5VhJzaoaI&list=LL&index=39&t=90s
-
 def clear_text():
     st.session_state["url"] = ""
+    st.session_state["mime"] = ""
+    st.session_state["quality"] = ""
 
 def download_file(stream):
     stream.download(output_path='./')
@@ -21,6 +21,8 @@ def can_access(url):
         except:
             pass
     return access
+
+
 
 st.set_page_config(page_title=" Youtube downloader", layout="wide")
 
@@ -55,11 +57,13 @@ with st.sidebar:
             quality_type = st.selectbox('Choose resolution: ', quality, key='quality')
             stream_quality = StreamQuery(streams_mime).filter(res=quality_type)
             
-        stream_final = stream_quality[0]#st.selectbox("Final choice:", stream_quality)
+        stream_final = stream_quality[0]
 
+        # === Download block === #
         download = st.button("Download file", key='download')
         if len(stream_quality) > 0 and download:
             download_file(stream_final)
+            st.success('Success download!')
             st.balloons()
 
         st.button("Clear all address boxes", on_click=clear_text)
@@ -74,11 +78,7 @@ with st.sidebar:
 
 
 
-
 # ====== MAIN PAGE ======
 
 if can_access(url):
     st.video(url)
-
-#if len(url) > 0 and requests.get(url).status_code!=200:
-#    st.write(requests.get(url))
