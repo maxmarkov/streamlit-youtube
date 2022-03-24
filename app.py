@@ -1,27 +1,26 @@
 import streamlit as st
 import requests
-from pytube import YouTube
+from pytube import YouTube, StreamQuery
 
 # https://www.youtube.com/watch?v=Ch5VhJzaoaI&list=LL&index=39&t=90s
 
 def clear_text():
     st.session_state["url"] = ""
 
-def download(stream):
+def download_file(stream):
     stream.download(output_path='./')
 
 def can_access(url):
-    """ check whether you can access the video"""
+    """ check whether you can access the video """
     access = False
-    if len(url) > 0 and requests.get(url).status_code==200:
+    if len(url) > 0:
         try:
             tube = YouTube(url)
-            #tubecheck_availability() -> must be None or empty
-            access=True
+            if tube.check_availability() is None:
+                access=True
         except:
             pass
     return access
-
 
 st.set_page_config(page_title=" Youtube downloader", layout="wide")
 
@@ -32,37 +31,36 @@ with st.sidebar:
 
     url = st.text_input("Insert your link here", key="url")
 
+    fmt = st.selectbox("Choose format:", ['video', 'audio'], key='fmt')
+
     if can_access(url):
 
         tube = YouTube(url)
 
-        fmt = st.selectbox("Choose format:", ['audio', 'video'])
+        streams_fmt = [t for t in tube.streams if t.type==fmt]
 
         # === StreamQuery Object === #
-        mime_types = set([t.mime_type for t in tube.streams if t.type==fmt])
-        if len(mime_types)>0:
-            mime_type = st.selectbox("Mime types:", mime_types)
+        mime_types = set([t.mime_type for t in streams_fmt])
+        mime_type = st.selectbox("Mime types:", mime_types, key='mime')
 
-            if fmt=='audio':
-                quality = set([t.abr for t in tube.streams if t.type==fmt and t.mime_type==mime_type])
-            elif fmt=='video':
-                quality = set([t.resolution for t in tube.streams if t.type==fmt and t.mime_type==mime_type])
+        streams_mime = StreamQuery(streams_fmt).filter(mime_type=mime_type)
+
+        # quality is average bitrate for audio and resolution for video
+        if fmt=='audio':
+            quality = set([t.abr for t in streams_mime])
+            quality_type = st.selectbox('Choose average bitrate: ', quality, key='quality')
+            stream_quality = StreamQuery(streams_mime).filter(abr=quality_type)
+        elif fmt=='video':
+            quality = set([t.resolution for t in streams_mime])
+            quality_type = st.selectbox('Choose resolution: ', quality, key='quality')
+            stream_quality = StreamQuery(streams_mime).filter(res=quality_type)
             
-            if len(quality) > 0:
-                mt = st.selectbox("Choose quality:", quality)
+        stream_final = stream_quality[0]#st.selectbox("Final choice:", stream_quality)
 
-                if len(mt) > 0:
-                    st.write('AAA')
-                    if fmt=='audio':
-                        stream = [t for t in tube.streams if t.type==fmt and t.mime_type==mime_type and t.abr==mt]
-                        st.write(stream)
-                    elif fmt=='video':
-                        stream = [t for t in tube.streams if t.type==fmt and t.mime_type==mime_type and t.resolution==mt]
-                        st.write(stream)
-
-                    if len(stream) > 0:
-                        st.button("Download file", on_click=download(stream[0]))
-
+        download = st.button("Download file", key='download')
+        if len(stream_quality) > 0 and download:
+            download_file(stream_final)
+            st.balloons()
 
         st.button("Clear all address boxes", on_click=clear_text)
 
