@@ -2,13 +2,22 @@ import streamlit as st
 import requests
 from pytube import YouTube, StreamQuery
 
+# Video with sound!
+# https://stackoverflow.com/questions/58456229/i-am-trying-to-download-video-using-pytube-however-for-some-reason-no-sound-is-d
+# https://www.youtube.com/watch?v=Ch5VhJzaoaI&t=90s
+
 def clear_text():
     st.session_state["url"] = ""
     st.session_state["mime"] = ""
     st.session_state["quality"] = ""
 
-def download_file(stream):
-    stream.download(output_path='./')
+def download_file(stream, fmt):
+    if fmt == 'audio':
+        title = stream.title + ' audio.'+ stream_final.subtype
+    else:
+        title = stream.title + '.'+ stream_final.subtype
+
+    stream.download(output_path='./',filename=title)
 
 def can_access(url):
     """ check whether you can access the video """
@@ -22,6 +31,19 @@ def can_access(url):
             pass
     return access
 
+def refine_format(fmt_type: str='audio') -> (str, bool):
+    """ """
+    if fmt_type == 'video (only)':
+        fmt = 'video'
+        progressive = False
+    elif fmt_type == 'video + audio':
+        fmt = 'video'
+        progressive = True
+    else:
+        fmt = 'audio'
+        progressive = False
+
+    return fmt, progressive
 
 
 st.set_page_config(page_title=" Youtube downloader", layout="wide")
@@ -33,15 +55,16 @@ with st.sidebar:
 
     url = st.text_input("Insert your link here", key="url")
 
-    fmt = st.selectbox("Choose format:", ['video', 'audio'], key='fmt')
+    fmt_type = st.selectbox("Choose format:", ['video (only)', 'audio (only)', 'video + audio'], key='fmt')
+
+    fmt, progressive = refine_format(fmt_type)
 
     if can_access(url):
 
         tube = YouTube(url)
 
-        streams_fmt = [t for t in tube.streams if t.type==fmt]
+        streams_fmt = [t for t in tube.streams if t.type==fmt and t.is_progressive==progressive]
 
-        # === StreamQuery Object === #
         mime_types = set([t.mime_type for t in streams_fmt])
         mime_type = st.selectbox("Mime types:", mime_types, key='mime')
 
@@ -56,15 +79,16 @@ with st.sidebar:
             quality = set([t.resolution for t in streams_mime])
             quality_type = st.selectbox('Choose resolution: ', quality, key='quality')
             stream_quality = StreamQuery(streams_mime).filter(res=quality_type)
-            
-        stream_final = stream_quality[0]
 
         # === Download block === #
-        download = st.button("Download file", key='download')
-        if len(stream_quality) > 0 and download:
-            download_file(stream_final)
-            st.success('Success download!')
-            st.balloons()
+        if stream_quality is not None:
+            stream_final = stream_quality[0]
+            download = st.button("Download file", key='download')
+
+            if download:
+                download_file(stream_final, fmt)
+                st.success('Success download!')
+                st.balloons()
 
         st.button("Clear all address boxes", on_click=clear_text)
 
@@ -81,4 +105,6 @@ with st.sidebar:
 # ====== MAIN PAGE ======
 
 if can_access(url):
+    if streams_fmt is None:
+        st.write(f"No {fmt_type} stream found")
     st.video(url)
