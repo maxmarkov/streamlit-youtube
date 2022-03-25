@@ -2,7 +2,7 @@
 
 Download your favorite youtube video on your local PC.
 
-![download youtube](demo/demo_downloader.gif)
+![download youtube](demo/demo-downloader.gif)
 
 ## Docker
 
