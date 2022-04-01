@@ -2,8 +2,6 @@ import streamlit as st
 import requests
 from pytube import YouTube, StreamQuery
 
-# Video with sound!
-# https://stackoverflow.com/questions/58456229/i-am-trying-to-download-video-using-pytube-however-for-some-reason-no-sound-is-d
 # https://www.youtube.com/watch?v=Ch5VhJzaoaI&t=90s
 
 def clear_text():
@@ -12,12 +10,14 @@ def clear_text():
     st.session_state["quality"] = ""
 
 def download_file(stream, fmt):
+    """  """
     if fmt == 'audio':
         title = stream.title + ' audio.'+ stream_final.subtype
     else:
         title = stream.title + '.'+ stream_final.subtype
 
-    stream.download(output_path='./',filename=title)
+    #stream.download(output_path='./', filename=title)
+    stream.download(filename=title)
 
 def can_access(url):
     """ check whether you can access the video """
