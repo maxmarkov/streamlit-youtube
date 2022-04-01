@@ -26,8 +26,8 @@ def download_file(stream, fmt):
     with open(title, 'rb') as f:
         bytes = f.read()
         b64 = base64.b64encode(bytes).decode()
-        href = f'<a href="data:file/zip;base64,{b64}" download=\'{title}\'>\
-            download file \
+        href = f'<a href="data:file/zip;base64,{b64}" download=\'{title}1\'>\
+            Here is your link \
         </a>'
         st.markdown(href, unsafe_allow_html=True)
         #response = requests.get(href)
@@ -69,6 +69,7 @@ st.set_page_config(page_title=" Youtube downloader", layout="wide")
 with st.sidebar:
 
     st.title("Youtube download app")
+    st.write(os.environ)
 
     url = st.text_input("Insert your link here", key="url")
 
