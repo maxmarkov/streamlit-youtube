@@ -2,6 +2,11 @@ import streamlit as st
 import requests
 from pytube import YouTube, StreamQuery
 
+import base64
+import os
+#import requests
+#import urllib.request
+
 # https://www.youtube.com/watch?v=Ch5VhJzaoaI&t=90s
 
 def clear_text():
@@ -18,6 +23,18 @@ def download_file(stream, fmt):
 
     #stream.download(output_path='./', filename=title)
     stream.download(filename=title)
+    with open(title, 'rb') as f:
+        bytes = f.read()
+        b64 = base64.b64encode(bytes).decode()
+        href = f'<a href="data:file/zip;base64,{b64}" download=\'{title}\'>\
+            download file \
+        </a>'
+        st.markdown(href, unsafe_allow_html=True)
+        #response = requests.get(href)
+        #urllib.request.urlretrieve(href)
+
+        os.remove(title)
+
 
 def can_access(url):
     """ check whether you can access the video """
