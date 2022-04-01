@@ -21,7 +21,7 @@ def download_file(stream, fmt):
 
     stream.download(filename=title)
     
-    if not os.environ['DESKTOP_SESSION']: #and os.environ('HOSTNAME')=='streamlit':
+    if ['DESKTOP_SESSION'] not in os.environ: #and os.environ('HOSTNAME')=='streamlit':
     
         with open(title, 'rb') as f:
             bytes = f.read()
@@ -98,7 +98,7 @@ with st.sidebar:
         # === Download block === #
         if stream_quality is not None:
             stream_final = stream_quality[0]
-            if os.environ['DESKTOP_SESSION']:
+            if ['DESKTOP_SESSION'] in os.environ:
                 download = st.button("Download file", key='download')
             else:
                 download = st.button("Get download link", key='download')
